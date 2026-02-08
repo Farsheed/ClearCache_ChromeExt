@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Site Storage Cleaner",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Selectively clear browser storage (cookies, localStorage, IndexedDB, etc.) for specific websites",
   "permissions": [
     "storage",

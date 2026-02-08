@@ -366,9 +366,7 @@ Extension Structure:
 **Not compatible with Firefox** (uses different extension system)
 
 ### Performance
-- **Optimized caching**: Uses smart caching to minimize storage reads
-- **Parallel processing**: Clears cookies and storage types concurrently
-- **Debounced search**: Responsive UI even with large lists of managed sites
+
 - **Popup load time**: <100ms
 - **Storage clearing**: 100-500ms depending on data volume
 - **Memory usage**: <10MB
@@ -376,13 +374,7 @@ Extension Structure:
 
 ## 📝 Changelog
 
-### Version 1.0.1 (Current)
-- **Performance**: Added smart caching for settings to minimize storage reads
-- **Performance**: Implemented parallel processing for cookie deletion
-- **UX**: Added debounced search for better responsiveness
-- **Reliability**: Improved error handling and edge case management
-
-### Version 1.0.0
+### Version 1.0.0 (Current)
 - Initial release
 - Managed sites list functionality
 - Multiple clearing methods (popup, button, context menu)

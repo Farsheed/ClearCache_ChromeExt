@@ -3,35 +3,11 @@
  * Handles storage clearing operations and extension lifecycle events
  */
 
-// Cache settings to reduce storage reads
-let cachedSettings = null;
-let cachedManagedSites = [];
-
-// Initialize cache
-chrome.storage.sync.get(null, (items) => {
-  cachedSettings = items;
-});
-chrome.storage.local.get({ managedSites: [] }, (items) => {
-  cachedManagedSites = items.managedSites;
-});
-
-// Listen for storage changes to update cache
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync') {
-    if (!cachedSettings) cachedSettings = {};
-    for (const [key, { newValue }] of Object.entries(changes)) {
-      cachedSettings[key] = newValue;
-    }
-  } else if (namespace === 'local' && changes.managedSites) {
-    cachedManagedSites = changes.managedSites.newValue;
-  }
-});
-
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     // Set default settings on first install
-    const defaultSettings = {
+    chrome.storage.sync.set({
       confirmBeforeClear: true,
       autoClear: false,
       showNotifications: true,
@@ -41,10 +17,7 @@ chrome.runtime.onInstalled.addListener((details) => {
       clearSessionStorage: true,
       clearIndexedDB: true,
       clearCache: true
-    };
-    
-    chrome.storage.sync.set(defaultSettings);
-    cachedSettings = defaultSettings;
+    });
     
     console.log('Site Storage Cleaner installed successfully');
   }
@@ -54,10 +27,6 @@ chrome.runtime.onInstalled.addListener((details) => {
     id: 'clear-site-storage',
     title: 'Clear storage for this site',
     contexts: ['page']
-  }, () => {
-    if (chrome.runtime.lastError) {
-      console.log('Context menu creation warning:', chrome.runtime.lastError.message);
-    }
   });
 });
 
@@ -71,15 +40,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   
   if (request.action === 'getSettings') {
-    if (cachedSettings) {
-      sendResponse({ settings: cachedSettings });
-    } else {
-      chrome.storage.sync.get(null, (settings) => {
-        cachedSettings = settings; // Update cache if empty
-        sendResponse({ settings });
-      });
-    }
-    return true; // Keep true for async response compatibility
+    chrome.storage.sync.get(null, (settings) => {
+      sendResponse({ settings });
+    });
+    return true;
   }
 });
 
@@ -270,9 +234,9 @@ async function clearCacheStorage(domain) {
  */
 async function checkAutoClear(domain) {
   try {
-    // Use cached settings if available, otherwise fetch
-    const settings = cachedSettings || await chrome.storage.sync.get(null);
-    const managedSites = cachedManagedSites.length > 0 ? cachedManagedSites : (await chrome.storage.local.get({ managedSites: [] })).managedSites;
+    // Get settings and managed sites
+    const settings = await chrome.storage.sync.get(null);
+    const { managedSites = [] } = await chrome.storage.local.get({ managedSites: [] });
     
     // Check if auto-clear is enabled
     if (!settings.autoClear) return;

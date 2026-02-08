@@ -571,12 +571,8 @@ function setupEventListeners() {
   // Bulk actions
   document.getElementById('clear-all-managed').addEventListener('click', clearAllManaged);
   
-  // Search with debounce
-  let searchTimeout;
-  document.getElementById('search-sites').addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(updateUI, 300);
-  });
+  // Search
+  document.getElementById('search-sites').addEventListener('input', updateUI);
   
   // Settings toggles - auto-save when changed
   document.querySelectorAll('.toggle-input').forEach(toggle => {

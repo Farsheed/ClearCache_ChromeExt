@@ -217,37 +217,29 @@ class StorageCleaner {
     try {
       const cookies = document.cookie.split(';');
 
-      // Create promises for all cookie deletions
-      const promises = [];
-      const domain = window.location.hostname;
-      const parts = domain.split('.');
-      const parentDomain = parts.length > 2 ? parts.slice(-2).join('.') : null;
-
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i];
         const eqPos = cookie.indexOf('=');
         const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
 
         if (name) {
-          promises.push(new Promise((resolve) => {
-            // Delete cookie for current path
-            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-            
-            // Delete cookie for root domain
-            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=${domain};path=/`;
-            
-            // Delete cookie for parent domain (if subdomain)
-            if (parentDomain) {
-              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=.${parentDomain};path=/`;
-            }
-            resolve();
-          }));
+          // Delete cookie for current path
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
           
+          // Delete cookie for root domain
+          const domain = window.location.hostname;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=${domain};path=/`;
+          
+          // Delete cookie for parent domain (if subdomain)
+          const parts = domain.split('.');
+          if (parts.length > 2) {
+            const parentDomain = parts.slice(-2).join('.');
+            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=.${parentDomain};path=/`;
+          }
+
           this.results.cookies.cleared++;
         }
       }
-      
-      await Promise.all(promises);
     } catch (error) {
       this.results.cookies.errors.push(error.message);
     }
